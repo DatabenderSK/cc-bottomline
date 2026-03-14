@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC Statusline — Katalóg dizajnov</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    color: #e6edf3;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    color: #7d8590;
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover {
+    border-color: #58a6ff;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #21262d;
+  }
+
+  .card-header h2 {
+    font-size: 1rem;
+    color: #e6edf3;
+    font-weight: 600;
+  }
+
+  .card-header .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #21262d;
+    color: #7d8590;
+  }
+
+  .card-header .badge.lines-1 { background: #1a3a2a; color: #56d364; }
+  .card-header .badge.lines-2 { background: #1a2a3a; color: #58a6ff; }
+  .card-header .badge.lines-3 { background: #2a1a3a; color: #bc8cff; }
+
+  .card-desc {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.75rem;
+    color: #7d8590;
+  }
+
+  .terminal {
+    background: #0d1117;
+    padding: 1rem 1.25rem;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    min-height: 3rem;
+    border-top: 1px solid #21262d;
+    position: relative;
+  }
+
+  .terminal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #30363d 20%, #30363d 80%, transparent);
+  }
+
+  /* Color classes */
+  .c-orange { color: #f0883e; }
+  .c-cyan { color: #4cd0de; }
+  .c-purple { color: #c067de; }
+  .c-gold { color: #ffc800; }
+  .c-green { color: #86c27e; }
+  .c-yellow { color: #e5c064; }
+  .c-red { color: #ed6a5e; }
+  .c-muted { color: #9ca3af; }
+  .c-dim { color: #484f58; }
+  .c-sep { color: #484f58; }
+  .c-white { color: #e6edf3; }
+
+  /* Tokyo Night palette */
+  .t-blue { color: #7aa2f7; }
+  .t-cyan { color: #7dcfff; }
+  .t-green { color: #9ece6a; }
+  .t-amber { color: #e0af68; }
+  .t-red { color: #f7768e; }
+  .t-muted { color: #a9b1d6; }
+
+  /* Nerd / Catppuccin palette */
+  .n-lav { color: #89b4fa; }
+  .n-teal { color: #94e2d5; }
+  .n-mauve { color: #cba6f7; }
+  .n-yellow { color: #f9e2af; }
+  .n-green { color: #a6e3a1; }
+  .n-red { color: #f38ba8; }
+  .n-muted { color: #bac2de; }
+
+  /* Cyberpunk palette */
+  .x-pink { color: #ff2a6d; }
+  .x-cyan { color: #05d9e8; }
+  .x-yellow { color: #d1f7ff; }
+  .x-purple { color: #9d4edd; }
+  .x-green { color: #01c38d; }
+
+  /* Material palette */
+  .m-green { color: #c3e88d; }
+  .m-blue { color: #82aaff; }
+  .m-cyan { color: #89ddff; }
+  .m-amber { color: #ffcb6b; }
+  .m-red { color: #f07178; }
+
+  /* Monochrome */
+  .mono-w { color: #e6edf3; }
+  .mono-m { color: #8b949e; }
+  .mono-d { color: #484f58; }
+
+  .bold { font-weight: 700; }
+  .dim { opacity: 0.6; }
+
+  /* Progress bars */
+  .bar { letter-spacing: -1px; }
+  .bar-fill-green { color: #86c27e; }
+  .bar-fill-yellow { color: #e5c064; }
+  .bar-fill-red { color: #ed6a5e; }
+  .bar-empty { color: #3c3f4b; }
+
+  .bar-fill-tgreen { color: #9ece6a; }
+  .bar-fill-tamber { color: #e0af68; }
+  .bar-fill-tred { color: #f7768e; }
+  .bar-empty-t { color: #3c3c50; }
+
+  .bar-fill-ngreen { color: #a6e3a1; }
+  .bar-fill-nyellow { color: #f9e2af; }
+  .bar-fill-nred { color: #f38ba8; }
+  .bar-empty-n { color: #45475a; }
+
+  .bar-fill-xcyan { color: #05d9e8; }
+  .bar-fill-xpink { color: #ff2a6d; }
+  .bar-empty-x { color: #1a1a2e; }
+
+  .bar-fill-mcyan { color: #89ddff; }
+  .bar-fill-mamber { color: #ffcb6b; }
+  .bar-fill-mred { color: #f07178; }
+  .bar-empty-m { color: #2c2c3a; }
+
+  .bar-fill-mono { color: #8b949e; }
+  .bar-empty-mono { color: #30363d; }
+
+  .line { white-space: nowrap; }
+
+  /* Config toggle section */
+  .config-section {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.7rem;
+    color: #484f58;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .config-section code {
+    color: #7d8590;
+    background: #0d1117;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 3rem 0 1rem;
+    color: #484f58;
+    font-size: 0.75rem;
+  }
+
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 0.8rem;
+    color: #7d8590;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #21262d;
+  }
+</style>
+</head>
+<body>
+
+<div style="max-width: 900px; margin: 0 auto;">
+
+<h1>CC Statusline</h1>
+<p class="subtitle">Konfigurovateľný statusline pre Claude Code &mdash; vyber si dizajn</p>
+
+<p class="section-title">Hlavné dizajny</p>
+
+<div class="grid">
+
+<!-- ============================================ -->
+<!-- 1. DEFAULT -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#1 Default</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Čisté farby, žiadne emoji. Progress bary len na usage limity.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-cyan bold">📁 LAB</span>
+      <span class="c-sep"> • </span>
+      <span class="c-purple bold">main</span>
+      <span class="c-sep"> | </span>
+      <span class="c-gold bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="c-green">ctx 8%</span>
+      <span class="dim c-muted"> (82k/1000k)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-green">5h</span>
+      <span class="bar"> <span class="bar-fill-green">███</span><span class="bar-empty">░░░░░░░░</span></span>
+      <span class="c-green"> 28%</span>
+      <span class="dim c-muted"> (3h 14m)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-green">7d</span>
+      <span class="bar"> <span class="bar-fill-green">█</span><span class="bar-empty">░░░░░░░░</span></span>
+      <span class="c-green"> 12%</span>
+      <span class="dim c-muted"> (5d 8h)</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=default</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 2. DEFAULT — HIGH USAGE -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#1b Default — vysoké využitie</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Rovnaký dizajn, ale pri 72% a 85% usage sa menia farby.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-cyan bold">📁 zunowp.com</span>
+      <span class="c-sep"> • </span>
+      <span class="c-purple bold">feature/blog</span>
+      <span class="c-sep"> | </span>
+      <span class="c-gold bold">⚡ Edit</span>
+    </div>
+    <div class="line">
+      <span class="c-yellow">ctx 45%</span>
+      <span class="dim c-muted"> (450k/1000k)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-yellow">5h</span>
+      <span class="bar"> <span class="bar-fill-yellow">██████</span><span class="bar-empty">░░</span></span>
+      <span class="c-yellow"> 72%</span>
+      <span class="dim c-muted"> (1h 38m)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-red bold">7d</span>
+      <span class="bar"> <span class="bar-fill-red">███████</span><span class="bar-empty">░</span></span>
+      <span class="c-red bold"> 85%</span>
+      <span class="dim c-muted"> (19h)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 3. MINIMAL -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#2 Minimal</h2>
+    <span class="badge lines-1">1 riadok</span>
+  </div>
+  <div class="card-desc">Všetko na jednom riadku, žiadne ikony, stručné.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> · </span>
+      <span class="c-cyan">LAB</span>
+      <span class="c-sep"> · </span>
+      <span class="c-purple">main</span>
+      <span class="c-sep"> · </span>
+      <span class="c-green">ctx 8%</span>
+      <span class="c-sep"> · </span>
+      <span class="c-green">5h 28%</span>
+      <span class="c-sep"> · </span>
+      <span class="c-green">7d 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=minimal</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 4. NERD -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#3 Nerd</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Catppuccin paleta, emoji ikony pri každom module.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="n-lav bold">🤖 Opus 4.6 (1M)</span>
+      <span class="c-sep"> │ </span>
+      <span class="n-teal bold">📁 LAB</span>
+      <span class="c-sep"> │ </span>
+      <span class="n-mauve bold">🌿 main</span>
+      <span class="c-sep"> │ </span>
+      <span class="n-yellow bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="n-green">🧠 ctx 8%</span>
+      <span class="dim n-muted"> (82k/1000k)</span>
+      <span class="c-sep"> │ </span>
+      <span class="n-green">⏳ 5h</span>
+      <span class="bar"> <span class="bar-fill-ngreen">███</span><span class="bar-empty-n">░░░░░</span></span>
+      <span class="n-green"> 28%</span>
+      <span class="dim n-muted"> (3h 14m)</span>
+      <span class="c-sep"> │ </span>
+      <span class="n-green">📅 7d</span>
+      <span class="bar"> <span class="bar-fill-ngreen">█</span><span class="bar-empty-n">░░░░░░░</span></span>
+      <span class="n-green"> 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=nerd</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 5. COMPACT -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#4 Compact</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Husté, bez reset časov a tokenov. Usage bary kompaktné.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-cyan bold">📁 LAB</span>
+      <span class="c-sep"> • </span>
+      <span class="c-purple bold">main</span>
+    </div>
+    <div class="line">
+      <span class="c-green">ctx 8%</span>
+      <span class="c-sep"> • </span>
+      <span class="c-green">5h</span>
+      <span class="bar"> <span class="bar-fill-green">██</span><span class="bar-empty">░░░░</span></span>
+      <span class="c-green"> 28%</span>
+      <span class="c-sep"> • </span>
+      <span class="c-green">7d</span>
+      <span class="bar"> <span class="bar-fill-green">█</span><span class="bar-empty">░░░░░</span></span>
+      <span class="c-green"> 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=compact</code> &nbsp; <code>SHOW_USAGE_RESET=0</code> &nbsp; <code>SHOW_CONTEXT_TOKENS=0</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 6. TOKYO -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#5 Tokyo Night</h2>
+    <span class="badge lines-3">3 riadky</span>
+  </div>
+  <div class="card-desc">Inšpirované Tokyo Night témou pre Neovim. 3-riadkový layout s plnými info.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="t-cyan bold">📁 LAB</span>
+      <span class="c-sep"> • </span>
+      <span class="t-green bold">main</span>
+    </div>
+    <div class="line">
+      <span class="t-blue bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="t-amber bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="t-green">ctx 8%</span>
+      <span class="dim t-muted"> (82k/1000k)</span>
+      <span class="c-sep"> • </span>
+      <span class="t-green">5h</span>
+      <span class="bar"> <span class="bar-fill-tgreen">███</span><span class="bar-empty-t">░░░░░</span></span>
+      <span class="t-green"> 28%</span>
+      <span class="dim t-muted"> (3h 14m)</span>
+      <span class="c-sep"> • </span>
+      <span class="t-green">7d</span>
+      <span class="bar"> <span class="bar-fill-tgreen">█</span><span class="bar-empty-t">░░░░░░░</span></span>
+      <span class="t-green"> 12%</span>
+      <span class="dim t-muted"> (5d 8h)</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=tokyo</code>
+  </div>
+</div>
+
+<p class="section-title">Extra dizajny</p>
+
+<!-- ============================================ -->
+<!-- 7. CYBERPUNK -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#6 Cyberpunk</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Neónové farby, hranatý štýl so zátvorkami. Výrazný na tmavom pozadí.</div>
+  <div class="terminal" style="background: #0a0a1a;">
+    <div class="line">
+      <span class="x-cyan bold">[Opus 4.6]</span>
+      <span class="c-sep"> // </span>
+      <span class="x-cyan">LAB</span>
+      <span class="c-sep"> → </span>
+      <span class="x-purple">main</span>
+      <span class="c-sep"> // </span>
+      <span class="x-pink bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="x-green">ctx 8%</span>
+      <span class="dim" style="color:#444"> (82k/1000k)</span>
+      <span class="c-sep"> // </span>
+      <span class="x-cyan">5h</span>
+      <span class="bar"> <span class="bar-fill-xcyan">███</span><span class="bar-empty-x">░░░░░</span></span>
+      <span class="x-cyan"> 28%</span>
+      <span class="c-sep"> // </span>
+      <span class="x-cyan">7d</span>
+      <span class="bar"> <span class="bar-fill-xcyan">█</span><span class="bar-empty-x">░░░░░░░</span></span>
+      <span class="x-cyan"> 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=cyberpunk</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 8. MATERIAL -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#7 Material</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Material Design paleta. Teplé farby, amber varovania, coral kritické.</div>
+  <div class="terminal" style="background: #0f111a;">
+    <div class="line">
+      <span class="m-green bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="m-cyan bold">📁 LAB</span>
+      <span class="c-sep"> • </span>
+      <span class="m-blue bold">main</span>
+      <span class="c-sep"> | </span>
+      <span class="m-amber bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="m-cyan">ctx 8%</span>
+      <span class="dim" style="color:#555"> (82k/1000k)</span>
+      <span class="c-sep"> | </span>
+      <span class="m-cyan">5h</span>
+      <span class="bar"> <span class="bar-fill-mcyan">███</span><span class="bar-empty-m">░░░░░</span></span>
+      <span class="m-cyan"> 28%</span>
+      <span class="dim" style="color:#555"> (3h 14m)</span>
+      <span class="c-sep"> | </span>
+      <span class="m-cyan">7d</span>
+      <span class="bar"> <span class="bar-fill-mcyan">█</span><span class="bar-empty-m">░░░░░░░</span></span>
+      <span class="m-cyan"> 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=material</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 9. MONOCHROME -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#8 Monochrome</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Bez farieb okrem thresholdov. Šedé odtiene, farba len keď treba upozorniť.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="mono-w bold">Opus 4.6 (1M)</span>
+      <span class="mono-d"> | </span>
+      <span class="mono-m">📁 LAB</span>
+      <span class="mono-d"> • </span>
+      <span class="mono-m">main</span>
+      <span class="mono-d"> | </span>
+      <span class="mono-w bold">⚡ Bash</span>
+    </div>
+    <div class="line">
+      <span class="mono-m">ctx 8%</span>
+      <span class="mono-d"> (82k/1000k)</span>
+      <span class="mono-d"> | </span>
+      <span class="mono-m">5h</span>
+      <span class="bar"> <span class="bar-fill-mono">███</span><span class="bar-empty-mono">░░░░░</span></span>
+      <span class="mono-m"> 28%</span>
+      <span class="mono-d"> (3h 14m)</span>
+      <span class="mono-d"> | </span>
+      <span class="mono-m">7d</span>
+      <span class="bar"> <span class="bar-fill-mono">█</span><span class="bar-empty-mono">░░░░░░░</span></span>
+      <span class="mono-m"> 12%</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=monochrome</code>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 10. MONOCHROME HIGH -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#8b Monochrome — vysoké využitie</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Monochrome sa vyfarbí len keď sú thresholdy prekročené.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="mono-w bold">Opus 4.6 (1M)</span>
+      <span class="mono-d"> | </span>
+      <span class="mono-m">📁 zunowp.com</span>
+      <span class="mono-d"> • </span>
+      <span class="mono-m">feature/blog</span>
+    </div>
+    <div class="line">
+      <span class="mono-m">ctx 45%</span>
+      <span class="mono-d"> (450k/1000k)</span>
+      <span class="mono-d"> | </span>
+      <span class="c-yellow bold">5h</span>
+      <span class="bar"> <span class="bar-fill-yellow">██████</span><span class="bar-empty-mono">░░</span></span>
+      <span class="c-yellow bold"> 72%</span>
+      <span class="mono-d"> (1h 38m)</span>
+      <span class="mono-d"> | </span>
+      <span class="c-red bold">7d</span>
+      <span class="bar"> <span class="bar-fill-red">███████</span><span class="bar-empty-mono">░</span></span>
+      <span class="c-red bold"> 85%</span>
+      <span class="mono-d"> (19h)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 11. CLEAN -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#9 Clean</h2>
+    <span class="badge lines-2">2 riadky</span>
+  </div>
+  <div class="card-desc">Žiadne emoji, žiadne progress bary. Len text a farby. Ultra minimalistické.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-cyan bold">LAB</span>
+      <span class="c-sep"> • </span>
+      <span class="c-purple bold">main</span>
+    </div>
+    <div class="line">
+      <span class="c-green">ctx 8%</span>
+      <span class="dim c-muted"> (82k/1000k)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-green">5h 28%</span>
+      <span class="dim c-muted"> (3h 14m)</span>
+      <span class="c-sep"> • </span>
+      <span class="c-green">7d 12%</span>
+      <span class="dim c-muted"> (5d 8h)</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=clean</code> — žiadne bary, žiadne emoji
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- 12. BRACKETS -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>#10 Brackets</h2>
+    <span class="badge lines-1">1 riadok</span>
+  </div>
+  <div class="card-desc">Všetko v hranatých zátvorkách. Inšpirované tmux statusline.</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-cyan">[</span><span class="c-orange bold">Opus</span><span class="c-cyan">]</span>
+      <span> </span>
+      <span class="c-cyan">[</span><span class="c-cyan">📁 LAB</span><span class="c-cyan">]</span>
+      <span> </span>
+      <span class="c-cyan">[</span><span class="c-purple">main</span><span class="c-cyan">]</span>
+      <span> </span>
+      <span class="c-cyan">[</span><span class="c-green">ctx 8%</span><span class="c-cyan">]</span>
+      <span> </span>
+      <span class="c-cyan">[</span><span class="c-green">5h 28%</span><span class="c-cyan">]</span>
+      <span> </span>
+      <span class="c-cyan">[</span><span class="c-green">7d 12%</span><span class="c-cyan">]</span>
+    </div>
+  </div>
+  <div class="config-section">
+    <code>THEME=brackets</code>
+  </div>
+</div>
+
+<p class="section-title">Voliteľné moduly</p>
+
+<!-- ============================================ -->
+<!-- OPTIONAL MODULES DEMO -->
+<!-- ============================================ -->
+<div class="card">
+  <div class="card-header">
+    <h2>Všetky moduly zapnuté</h2>
+    <span class="badge">demo</span>
+  </div>
+  <div class="card-desc">Ukážka všetkých dostupných modulov naraz (default téma).</div>
+  <div class="terminal">
+    <div class="line">
+      <span class="c-orange bold">Opus 4.6 (1M)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-cyan bold">📁 zunowp.com</span>
+      <span class="c-sep"> • </span>
+      <span class="c-purple bold">feature/blog</span>
+      <span> </span>
+      <span class="c-green">+3</span>
+      <span> </span>
+      <span class="c-red">~5</span>
+      <span class="c-sep"> • </span>
+      <span class="c-green">↳ code-reviewer</span>
+      <span class="c-sep"> | </span>
+      <span class="c-gold bold">⚡ Grep</span>
+    </div>
+    <div class="line">
+      <span class="c-yellow">ctx 45%</span>
+      <span class="dim c-muted"> (450k/1000k)</span>
+      <span class="c-sep"> | </span>
+      <span class="c-yellow">5h</span>
+      <span class="bar"> <span class="bar-fill-yellow">██████</span><span class="bar-empty">░░</span></span>
+      <span class="c-yellow"> 72%</span>
+      <span class="dim c-muted"> (1h 38m)</span>
+      <span class="c-sep"> • </span>
+      <span class="c-red bold">7d</span>
+      <span class="bar"> <span class="bar-fill-red">███████</span><span class="bar-empty">░</span></span>
+      <span class="c-red bold"> 85%</span>
+      <span class="dim c-muted"> (19h)</span>
+      <span class="c-sep"> • </span>
+      <span class="c-muted">$0.34</span>
+      <span class="c-sep"> • </span>
+      <span class="c-muted">7m 3s</span>
+      <span class="c-sep"> • </span>
+      <span class="c-green">+156</span>
+      <span> </span>
+      <span class="c-red">-23</span>
+      <span class="c-sep"> • </span>
+      <span class="dim c-muted">v2.1.11</span>
+    </div>
+  </div>
+  <div class="config-section">
+    Všetky <code>SHOW_*=1</code>
+  </div>
+</div>
+
+</div><!-- grid -->
+
+<footer>
+  CC Statusline v0.1.0 &mdash; <a href="https://github.com/anthropics/claude-code">Claude Code</a> statusline toolkit
+</footer>
+
+</div>
+</body>
+</html>
