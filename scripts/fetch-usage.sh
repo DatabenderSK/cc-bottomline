@@ -31,7 +31,7 @@ if [ -z "$raw_creds" ]; then
   exit 0
 fi
 
-token=$(printf '%s' "$raw_creds" | xxd -r -p 2>/dev/null | grep -o 'sk-ant-oat01-[A-Za-z0-9_-]*' | head -1)
+token=$(printf '%s' "$raw_creds" | grep -o 'sk-ant-oat01-[A-Za-z0-9_-]*' | head -1)
 if [ -z "$token" ]; then
   exit 0
 fi

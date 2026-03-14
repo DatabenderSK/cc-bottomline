@@ -152,8 +152,8 @@ Usage and context automatically change color:
 
 | Range | Color |
 |-------|-------|
-| 0–49% | Green (or gray in hybrid/monochrome) |
-| 50–79% | Yellow |
+| 0–59% | Green (or gray in hybrid/monochrome) |
+| 60–79% | Yellow |
 | 80%+ | Red bold |
 
 ## Usage fetch

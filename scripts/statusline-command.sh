@@ -112,7 +112,7 @@ esac
 usage_color() {
   pct="$1"
   if [ "$pct" -ge 80 ]; then printf "%s" "${C_RED}${B}"
-  elif [ "$pct" -ge 50 ]; then printf "%s" "${C_YELLOW}"
+  elif [ "$pct" -ge 60 ]; then printf "%s" "${C_YELLOW}"
   else printf "%s" "${C_GREEN}"
   fi
 }
@@ -405,7 +405,7 @@ hybrid)
   fi
   if [ "$SHOW_USAGE_5H" = "1" ] && [ -n "$five_h" ]; then
     [ "$h" = "1" ] && printf " ${C_MONO_D}|${R} "
-    if [ "$five_h" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$five_h" -ge 50 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
+    if [ "$five_h" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$five_h" -ge 60 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
     if [ "$SHOW_USAGE_BAR" = "1" ]; then
       bar=$(render_bar "$five_h" "$USAGE_BAR_WIDTH")
       printf "${uc}5h${R} %s ${uc}%s%%${R}" "$bar" "$five_h"
@@ -417,7 +417,7 @@ hybrid)
   fi
   if [ "$SHOW_USAGE_7D" = "1" ] && [ -n "$seven_d" ]; then
     [ "$h" = "1" ] && printf " ${C_MONO_D}•${R} "
-    if [ "$seven_d" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$seven_d" -ge 50 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
+    if [ "$seven_d" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$seven_d" -ge 60 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
     if [ "$SHOW_USAGE_BAR" = "1" ]; then
       bar=$(render_bar "$seven_d" "$USAGE_BAR_WIDTH")
       printf "${uc}7d${R} %s ${uc}%s%%${R}" "$bar" "$seven_d"
