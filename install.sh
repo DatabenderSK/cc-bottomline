@@ -54,11 +54,17 @@ if command -v jq > /dev/null 2>&1 && [ -f "$SETTINGS" ]; then
   if [ -z "$has_hook" ] || [ "$has_hook" = "null" ]; then
     tmp=$(mktemp)
     jq '.hooks.PreToolUse = [{"matcher": "", "hooks": [{"type": "command", "command": "bash ~/.claude/track-tool.sh; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"}]}]' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
+  else
+    echo "Note: PreToolUse hook already exists. Add manually to your existing hook:"
+    echo '  bash ~/.claude/track-tool.sh; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &'
   fi
   has_stop=$(jq -r '.hooks.Stop // empty' "$SETTINGS" 2>/dev/null)
   if [ -z "$has_stop" ] || [ "$has_stop" = "null" ]; then
     tmp=$(mktemp)
     jq '.hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "rm -f /tmp/.claude_current_tool; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"}]}]' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
+  else
+    echo "Note: Stop hook already exists. Add manually to your existing hook:"
+    echo '  rm -f /tmp/.claude_current_tool; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &'
   fi
 fi
 

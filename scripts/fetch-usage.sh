@@ -15,7 +15,7 @@ CONF_FILE="$HOME/.claude/statusline.conf"
 TTL=1800
 if [ -f "$CONF_FILE" ]; then
   conf_ttl=$(grep '^USAGE_FETCH_TTL=' "$CONF_FILE" 2>/dev/null | cut -d= -f2)
-  [ -n "$conf_ttl" ] && TTL="$conf_ttl"
+  case "$conf_ttl" in ''|*[!0-9]*) ;; *) TTL="$conf_ttl" ;; esac
 fi
 
 if [ -f "$CACHE_FILE" ]; then
@@ -36,13 +36,15 @@ if [ -z "$token" ]; then
   exit 0
 fi
 
-# --- fetch usage ---
-usage_json=$(curl -s -m 10 \
+# --- fetch usage (token passed via temp config to avoid process list exposure) ---
+tmp_cfg=$(mktemp)
+printf 'header = "authorization: Bearer %s"\n' "$token" > "$tmp_cfg"
+usage_json=$(curl -s -m 10 -K "$tmp_cfg" \
   -H "accept: application/json" \
   -H "anthropic-beta: oauth-2025-04-20" \
-  -H "authorization: Bearer $token" \
   -H "user-agent: claude-code/2.1.11" \
   "https://api.anthropic.com/oauth/usage" 2>/dev/null)
+rm -f "$tmp_cfg"
 
 if [ -z "$usage_json" ]; then
   exit 0
