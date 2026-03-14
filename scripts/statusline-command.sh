@@ -22,6 +22,23 @@ R="\033[0m"; B="\033[1m"; D="\033[2m"; S="\033[90m"
 
 # ── color palettes per theme ──
 case "$THEME" in
+  hybrid)
+    C_MODEL="\033[38;5;208m"             # orange (line 1 colored)
+    C_FOLDER="\033[38;2;76;208;222m"     # cyan
+    C_BRANCH="\033[38;2;192;103;222m"    # purple
+    C_TOOL="\033[38;2;255;200;0m"        # gold
+    C_GREEN="\033[38;2;134;194;126m"
+    C_YELLOW="\033[38;2;229;192;100m"
+    C_RED="\033[38;2;237;106;94m"
+    C_MUTED="\033[38;2;139;148;158m"     # monochrome gray
+    C_BAR_E="\033[38;2;48;54;61m"        # dark gray bar
+    C_ADD="\033[38;2;134;194;126m"
+    C_DEL="\033[38;2;237;106;94m"
+    C_AGENT="\033[38;2;134;194;126m"
+    # monochrome colors for line 2
+    C_MONO="\033[38;2;139;148;158m"
+    C_MONO_D="\033[38;2;72;79;88m"
+    ;;
   tokyo)
     C_MODEL="\033[38;2;122;162;247m"     # blue
     C_FOLDER="\033[38;2;125;207;255m"    # cyan
@@ -367,6 +384,51 @@ pr_extras() {
 # ══════════════════════════════════════════════════════
 
 case "$THEME" in
+
+# ─────────────── HYBRID: colored L1 + mono L2 ────
+hybrid)
+  # line 1: colored — model | folder • branch [| tool]
+  pr_model; pr_folder "$PIPE"; pr_branch "$SEP"
+  pr_agent "$SEP"; pr_worktree "$SEP"; pr_tool "$PIPE"
+  # line 2: monochrome — ctx colored, limits mono (colored only on threshold)
+  printf "\n"; h=0
+  if [ "$SHOW_CONTEXT" = "1" ] || [ "$SHOW_CONTEXT_BAR" = "1" ]; then
+    ctx_c=$(usage_color "$used_int")
+    if [ "$SHOW_CONTEXT_BAR" = "1" ]; then
+      bar=$(render_bar "$used_int")
+      printf "%s ${ctx_c}%s${R}" "$bar" "$ctx_str"
+    else
+      printf "${ctx_c}ctx %s${R}" "$ctx_str"
+    fi
+    [ "$SHOW_CONTEXT_TOKENS" = "1" ] && [ -n "$ctx_tokens_str" ] && printf " ${C_MONO_D}(%s)${R}" "$ctx_tokens_str"
+    h=1
+  fi
+  if [ "$SHOW_USAGE_5H" = "1" ] && [ -n "$five_h" ]; then
+    [ "$h" = "1" ] && printf " ${C_MONO_D}|${R} "
+    if [ "$five_h" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$five_h" -ge 50 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
+    if [ "$SHOW_USAGE_BAR" = "1" ]; then
+      bar=$(render_bar "$five_h" "$USAGE_BAR_WIDTH")
+      printf "${uc}5h${R} %s ${uc}%s%%${R}" "$bar" "$five_h"
+    else
+      printf "${uc}5h %s%%${R}" "$five_h"
+    fi
+    [ "$SHOW_USAGE_RESET" = "1" ] && [ -n "$five_h_reset" ] && { delta=$(compute_delta "$five_h_reset"); [ -n "$delta" ] && printf " ${C_MONO_D}(%s)${R}" "$delta"; }
+    h=1
+  fi
+  if [ "$SHOW_USAGE_7D" = "1" ] && [ -n "$seven_d" ]; then
+    [ "$h" = "1" ] && printf " ${C_MONO_D}•${R} "
+    if [ "$seven_d" -ge 80 ]; then uc="${C_RED}${B}"; elif [ "$seven_d" -ge 50 ]; then uc="${C_YELLOW}"; else uc="${C_MONO}"; fi
+    if [ "$SHOW_USAGE_BAR" = "1" ]; then
+      bar=$(render_bar "$seven_d" "$USAGE_BAR_WIDTH")
+      printf "${uc}7d${R} %s ${uc}%s%%${R}" "$bar" "$seven_d"
+    else
+      printf "${uc}7d %s%%${R}" "$seven_d"
+    fi
+    [ "$SHOW_USAGE_RESET" = "1" ] && [ -n "$seven_d_reset" ] && { delta=$(compute_delta "$seven_d_reset"); [ -n "$delta" ] && printf " ${C_MONO_D}(%s)${R}" "$delta"; }
+    h=1
+  fi
+  pr_extras " ${C_MONO_D}•${R} " "h"
+  ;;
 
 # ─────────────── MINIMAL: 1 riadok ───────────────
 minimal)
