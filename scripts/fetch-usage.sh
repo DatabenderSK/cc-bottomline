@@ -1,6 +1,7 @@
 #!/bin/sh
-# Fetches Claude API usage stats and writes them to /tmp/.claude_usage_cache.
+# Fetches Claude API usage stats and writes them to cache.
 # Respects TTL from statusline.conf to avoid excessive API calls.
+# Works on macOS, Linux, and Windows (Git Bash).
 #
 # Cache format:
 # Line 1: five_hour.utilization (integer %)
@@ -8,7 +9,21 @@
 # Line 3: five_hour.resets_at (raw ISO string)
 # Line 4: seven_day.resets_at (raw ISO string)
 
-CACHE_FILE="/tmp/.claude_usage_cache"
+# ── OS detection ──
+case "$(uname -s)" in
+  Darwin*)               _OS=mac ;;
+  MINGW*|MSYS*|CYGWIN*) _OS=win ;;
+  *)                     _OS=linux ;;
+esac
+_TMPDIR="${TMPDIR:-${TEMP:-${TMP:-/tmp}}}"
+_mtime() {
+  case "$_OS" in
+    mac) stat -f %m "$1" 2>/dev/null || echo 0 ;;
+    *)   stat -c %Y "$1" 2>/dev/null || echo 0 ;;
+  esac
+}
+
+CACHE_FILE="$_TMPDIR/.claude_usage_cache"
 CONF_FILE="$HOME/.claude/statusline.conf"
 
 # --- TTL check ---
@@ -19,14 +34,26 @@ if [ -f "$CONF_FILE" ]; then
 fi
 
 if [ -f "$CACHE_FILE" ]; then
-  cache_age=$(( $(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0) ))
+  cache_age=$(( $(date +%s) - $(_mtime "$CACHE_FILE") ))
   if [ "$cache_age" -lt "$TTL" ]; then
     exit 0
   fi
 fi
 
-# --- fetch credentials ---
-raw_creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+# --- fetch credentials (cross-platform) ---
+raw_creds=""
+case "$_OS" in
+  mac)
+    raw_creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+    ;;
+  win)
+    raw_creds=$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/.claude/get-credentials.ps1" 2>/dev/null)
+    ;;
+  *)
+    raw_creds=$(secret-tool lookup service "Claude Code-credentials" 2>/dev/null)
+    ;;
+esac
+
 if [ -z "$raw_creds" ]; then
   exit 0
 fi

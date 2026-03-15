@@ -17,6 +17,20 @@ BAR_WIDTH=10; USAGE_BAR_WIDTH=8; USAGE_FETCH_TTL=1800; GIT_CACHE_TTL=5
 CONF_FILE="$HOME/.claude/statusline.conf"
 [ -f "$CONF_FILE" ] && . "$CONF_FILE"
 
+# ── OS detection ──
+case "$(uname -s)" in
+  Darwin*)               _OS=mac ;;
+  MINGW*|MSYS*|CYGWIN*) _OS=win ;;
+  *)                     _OS=linux ;;
+esac
+_TMPDIR="${TMPDIR:-${TEMP:-${TMP:-/tmp}}}"
+_mtime() {
+  case "$_OS" in
+    mac) stat -f %m "$1" 2>/dev/null || echo 0 ;;
+    *)   stat -c %Y "$1" 2>/dev/null || echo 0 ;;
+  esac
+}
+
 # ── ANSI codes ──
 R="\033[0m"; B="\033[1m"; D="\033[2m"; S="\033[90m"
 
@@ -131,7 +145,10 @@ render_bar() {
 
 compute_delta() {
   clean=$(echo "$1" | sed 's/\.[0-9]*//' | sed 's/[+-][0-9][0-9]:[0-9][0-9]$//' | sed 's/Z$//')
-  reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" "+%s" 2>/dev/null)
+  case "$_OS" in
+    mac) reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%S" "$clean" "+%s" 2>/dev/null) ;;
+    *)   reset_epoch=$(date -u -d "$clean" "+%s" 2>/dev/null) ;;
+  esac
   [ -z "$reset_epoch" ] && return
   now_epoch=$(date -u "+%s"); diff=$(( reset_epoch - now_epoch ))
   [ "$diff" -le 0 ] && echo "now" && return
@@ -170,10 +187,10 @@ fi
 # git status (staged/modified counts, cached)
 git_staged=0; git_modified=0
 if [ "$SHOW_GIT_STATUS" = "1" ] && [ -n "$branch" ]; then
-  GIT_CACHE="/tmp/.claude_git_status_cache"
+  GIT_CACHE="$_TMPDIR/.claude_git_status_cache"
   stale=1
   if [ -f "$GIT_CACHE" ]; then
-    age=$(( $(date +%s) - $(stat -f %m "$GIT_CACHE" 2>/dev/null || echo 0) ))
+    age=$(( $(date +%s) - $(_mtime "$GIT_CACHE") ))
     [ "$age" -lt "$GIT_CACHE_TTL" ] && stale=0
   fi
   if [ "$stale" = "1" ]; then
@@ -187,8 +204,8 @@ fi
 
 # current tool
 current_tool=""
-if [ "$SHOW_TOOL" = "1" ] && [ -f "/tmp/.claude_current_tool" ]; then
-  current_tool=$(cat "/tmp/.claude_current_tool" 2>/dev/null)
+if [ "$SHOW_TOOL" = "1" ] && [ -f "$_TMPDIR/.claude_current_tool" ]; then
+  current_tool=$(cat "$_TMPDIR/.claude_current_tool" 2>/dev/null)
 fi
 
 # agent
@@ -204,7 +221,7 @@ if [ "$SHOW_WORKTREE" = "1" ]; then
 fi
 
 # usage cache
-CACHE_FILE="/tmp/.claude_usage_cache"
+CACHE_FILE="$_TMPDIR/.claude_usage_cache"
 five_h=""; seven_d=""; five_h_reset=""; seven_d_reset=""
 if [ -f "$CACHE_FILE" ]; then
   five_h=$(sed -n '1p' "$CACHE_FILE")

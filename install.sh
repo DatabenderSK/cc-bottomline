@@ -1,11 +1,18 @@
 #!/bin/sh
-# CC Bottomline — installer
+# CC Bottomline — cross-platform installer (macOS, Linux, Windows Git Bash)
 # Usage: curl -fsSL https://raw.githubusercontent.com/DatabenderSK/cc-bottomline/main/install.sh | bash
 
 set -e
 
 REPO="https://raw.githubusercontent.com/DatabenderSK/cc-bottomline/main"
 DEST="$HOME/.claude"
+
+# OS detection
+case "$(uname -s)" in
+  Darwin*)               _OS=mac ;;
+  MINGW*|MSYS*|CYGWIN*) _OS=win ;;
+  *)                     _OS=linux ;;
+esac
 
 echo "Installing CC Bottomline..."
 
@@ -14,6 +21,11 @@ mkdir -p "$DEST"
 curl -fsSL "$REPO/scripts/statusline-command.sh" -o "$DEST/statusline-command.sh"
 curl -fsSL "$REPO/scripts/fetch-usage.sh" -o "$DEST/fetch-usage.sh"
 curl -fsSL "$REPO/scripts/track-tool.sh" -o "$DEST/track-tool.sh"
+
+# Windows: also download PowerShell credential helper
+if [ "$_OS" = "win" ]; then
+  curl -fsSL "$REPO/scripts/get-credentials.ps1" -o "$DEST/get-credentials.ps1"
+fi
 
 # Config — only if not exists (don't overwrite user config)
 if [ ! -f "$DEST/statusline.conf" ]; then
@@ -61,10 +73,10 @@ if command -v jq > /dev/null 2>&1 && [ -f "$SETTINGS" ]; then
   has_stop=$(jq -r '.hooks.Stop // empty' "$SETTINGS" 2>/dev/null)
   if [ -z "$has_stop" ] || [ "$has_stop" = "null" ]; then
     tmp=$(mktemp)
-    jq '.hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "rm -f /tmp/.claude_current_tool; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"}]}]' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
+    jq '.hooks.Stop = [{"matcher": "", "hooks": [{"type": "command", "command": "bash ~/.claude/track-tool.sh clean; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &"}]}]' "$SETTINGS" > "$tmp" && mv "$tmp" "$SETTINGS"
   else
     echo "Note: Stop hook already exists. Add manually to your existing hook:"
-    echo '  rm -f /tmp/.claude_current_tool; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &'
+    echo '  bash ~/.claude/track-tool.sh clean; bash ~/.claude/fetch-usage.sh > /dev/null 2>&1 &'
   fi
 fi
 
@@ -72,5 +84,21 @@ echo ""
 echo "Done! Restart Claude Code to see your new bottomline."
 echo ""
 echo "Change theme:  edit ~/.claude/statusline.conf → THEME=hybrid"
-echo "Available:     hybrid, default, minimal, nerd, compact, tokyo, monochrome, brackets"
+echo "Available:     hybrid, default, minimal, nerd, compact, tokyo"
 echo "Preview:       https://github.com/DatabenderSK/cc-bottomline#themes"
+
+# Platform-specific notes
+case "$_OS" in
+  win)
+    echo ""
+    echo "Windows note: requires Git for Windows (bash) and jq in PATH."
+    echo "  winget install Git.Git"
+    echo "  winget install jqlang.jq"
+    ;;
+  linux)
+    echo ""
+    echo "Linux note: usage fetch requires secret-tool (libsecret) for credentials."
+    echo "  sudo apt install libsecret-tools   # Debian/Ubuntu"
+    echo "  sudo dnf install libsecret          # Fedora"
+    ;;
+esac

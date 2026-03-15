@@ -18,8 +18,16 @@ ctx 45% (450k/1000k) | 5h ██████░░ 72% (1h 38m) • 7d ███
 
 ## Install
 
+### macOS / Linux
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/DatabenderSK/cc-bottomline/main/install.sh | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/DatabenderSK/cc-bottomline/main/install.ps1 | iex
 ```
 
 Or manually: copy `scripts/` files to `~/.claude/` and add to `~/.claude/settings.json`:
@@ -33,7 +41,13 @@ Or manually: copy `scripts/` files to `~/.claude/` and add to `~/.claude/setting
 }
 ```
 
-**Requirements:** `jq` (for JSON parsing), macOS or Linux.
+### Requirements
+
+| Platform | Requirements |
+|----------|-------------|
+| macOS | `jq` (`brew install jq`) |
+| Linux | `jq`, `secret-tool` (libsecret) for usage fetch |
+| Windows | [Git for Windows](https://git-scm.com/download/win) (provides bash), `jq` (`winget install jqlang.jq`) |
 
 ## Themes
 
@@ -164,7 +178,10 @@ API limits (5h/7d) are fetched from the Anthropic API and cached. The fetch inte
 USAGE_FETCH_TTL=1800   # 1800 = 30 min (default), 3600 = 1 hour
 ```
 
-The script reads your Claude Code credentials from the macOS keychain. No API key needed.
+The script reads your Claude Code credentials automatically:
+- **macOS:** Keychain (`security`)
+- **Linux:** Secret Service / GNOME Keyring (`secret-tool`)
+- **Windows:** Windows Credential Manager (via PowerShell helper)
 
 ## Files
 
@@ -174,17 +191,24 @@ The script reads your Claude Code credentials from the macOS keychain. No API ke
 | `statusline.conf` | Configuration (themes, modules, intervals) |
 | `fetch-usage.sh` | Fetches 5h/7d API usage limits |
 | `track-tool.sh` | Tracks currently active tool |
+| `get-credentials.ps1` | Windows credential helper (Windows only) |
 
 ## Uninstall
 
 Remove the files and the `statusLine` entry from settings:
 
+macOS / Linux:
 ```sh
 rm ~/.claude/statusline-command.sh ~/.claude/statusline.conf
-rm ~/.claude/fetch-usage.sh ~/.claude/track-tool.sh
+rm ~/.claude/fetch-usage.sh ~/.claude/track-tool.sh ~/.claude/get-credentials.ps1
 ```
 
-Then remove `"statusLine"` from `~/.claude/settings.json`.
+Windows (PowerShell):
+```powershell
+Remove-Item ~\.claude\statusline-command.sh, ~\.claude\statusline.conf, ~\.claude\fetch-usage.sh, ~\.claude\track-tool.sh, ~\.claude\get-credentials.ps1 -ErrorAction SilentlyContinue
+```
+
+Then remove `"statusLine"` and the hooks from `~/.claude/settings.json`.
 
 ## License
 
